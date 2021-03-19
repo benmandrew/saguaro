@@ -67,6 +67,24 @@ let rec foldLeft f a l =
   | h::t -> foldLeft f (f a h) t
 
 
+let rec isConsistentClause (occurrences, seen) clause =
+  match clause with
+  | [] -> (occurrences, seen)
+  | l::clause when Set.mem (inv l) ->
+    (occurrences, true)
+  | l::clause ->
+    isConsistent ((), seen) clause
+
+
+let rec isConsistent clauses =
+  let l = foldLeft (
+    fun (occurrences, seen) x ->
+      if seen then (occurrences, seen) else
+      isConsistentClause occurrences x)
+      (Set.empty, false)
+      clauses in
+  
+
 let rec getPureLiteralsClause (first, second) clause =
   match clause with
   | [] -> (first, second)
@@ -77,15 +95,13 @@ let rec getPureLiteralsClause (first, second) clause =
   | l::clause ->
     getPureLiteralsClause (Set.add l first, second) clause
 
-let pureLiteralsAux (first, second) clauses =
-  foldLeft (
+let pureLiterals clauses =
+  let l = foldLeft (
     fun (first, second) x ->
       getPureLiteralsClause (first, second) x)
-    (first, second)
-    clauses
-
-let pureLiterals clauses =
-  match pureLiteralsAux (Set.empty, Set.empty) clauses with
+    (Set.empty, Set.empty)
+    clauses in
+  match l with
   | (first, second) ->
     let second = Set.map (fun x -> {lit=x.lit; sign=(not x.sign)}) second in
     Set.filter (fun x -> not (Set.mem x second)) first
@@ -99,13 +115,17 @@ let pureLitElim pure clauses =
 
 
 let rec dpll clauses =
-  if List.exists isEmpty clauses then clauses
-  else match hasUnitClause clauses with
+  if isEmpty clauses then false else
+  if List.exists isEmpty clauses then true else
+  match hasUnitClause clauses with
   | Some x -> dpll (filterMap (unitPropagate x) clauses)
   | None ->
     let pure = pureLiterals clauses in
     match Set.elements pure with
-    | [] -> clauses (* TODO SPLIT CASE *)
+    | [] ->
+      let split = List.hd (List.hd clauses) in
+      (dpll (filterMap (unitPropagate split) clauses)) &&
+      (dpll (filterMap (unitPropagate (inv split)) clauses))
     | _ -> dpll (pureLitElim pure clauses)
 
 
@@ -130,10 +150,12 @@ let _ =
       {lit = 'A'; sign = true};
       {lit = 'B'; sign = false};
       {lit = 'D'; sign = true};
-    ]
+    ];
   ] in
   let clauses' = dpll clauses in
   List.iter (fun x -> printList x) clauses ;
   print_char '\n' ;
   List.iter (fun x -> printList x) clauses' ;
   print_char '\n' ;
+
+
