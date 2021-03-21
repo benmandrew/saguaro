@@ -70,10 +70,10 @@ let rec foldLeft f a l =
 let rec isConsistentClause (occurrences, seen) clause =
   match clause with
   | [] -> (occurrences, seen)
-  | l::clause when Set.mem (inv l) ->
+  | l::clause when Set.mem (inv l) occurrences ->
     (occurrences, true)
   | l::clause ->
-    isConsistent ((), seen) clause
+    isConsistentClause ((), seen) clause
 
 
 let rec isConsistent clauses =
