@@ -39,50 +39,38 @@ let rec hasUnitClause clauses =
     | None -> hasUnitClause clauses
     | Some x -> Some x
 
-let rec unitPropagateAux clause lit =
+let rec unitPropagate lit clause =
   match clause with
   | [] -> []
   | l::clause when l.lit <> lit.lit ->
-    l::(unitPropagateAux clause lit)
+    l::(unitPropagate lit clause)
   | l::_ when l.sign == lit.sign -> []
-  | _::clause -> unitPropagateAux clause lit
-
-let unitPropagate lit clause =
-  match unitPropagateAux clause lit with
-  | [] -> None
-  | l -> Some l
-
-let rec filterMapAux l =
-  match l with
-  | [] -> []
-  | (Some x)::l -> x::(filterMapAux l)
-  | None::l -> filterMapAux l
-
-let filterMap f l =
-  filterMapAux (List.map f l)
+  | _::clause -> unitPropagate lit clause
 
 let rec foldLeft f a l =
   match l with
   | [] -> a
   | h::t -> foldLeft f (f a h) t
 
-
 let rec isConsistentClause (occurrences, seen) clause =
   match clause with
   | [] -> (occurrences, seen)
-  | l::clause when Set.mem (inv l) occurrences ->
+  | l::_ when Set.mem (inv l) occurrences ->
     (occurrences, true)
   | l::clause ->
-    isConsistentClause ((), seen) clause
+    isConsistentClause (Set.add l occurrences, seen) clause
 
 
-let rec isConsistent clauses =
+let isConsistent clauses =
   let l = foldLeft (
     fun (occurrences, seen) x ->
       if seen then (occurrences, seen) else
-      isConsistentClause occurrences x)
-      (Set.empty, false)
-      clauses in
+      isConsistentClause (occurrences, seen) x)
+    (Set.empty, false)
+    clauses in
+  match l with
+  | (_, false) -> Set.empty
+  | (occurrences, true) -> occurrences
   
 
 let rec getPureLiteralsClause (first, second) clause =
@@ -114,27 +102,54 @@ let pureLitElim pure clauses =
   ) clauses (Set.elements pure)
 
 
-let rec dpll clauses =
-  if isEmpty clauses then false else
-  if List.exists isEmpty clauses then true else
+let printLiteral lit =
+  if not lit.sign then print_string "¬" ;
+  print_char lit.lit ; print_string " "
+
+let rec printListAux = function
+  | [] -> print_string "}\n"
+  | x::l -> printLiteral x ; printListAux l
+
+let printList l =
+  print_string "{ ";
+  printListAux l
+
+let printClauses clauses =
+  List.iter (fun x -> printList x) clauses
+
+let rec dpllAux assignments clauses =
+  printClauses clauses;
+  if isEmpty clauses then
+    (print_string "No clauses:\n"; printClauses clauses; print_char '\n';
+    Set.empty) else
+  if List.exists isEmpty clauses then
+    (print_string "Empty clause:\n"; printClauses clauses; print_char '\n';
+    assignments) else
   match hasUnitClause clauses with
-  | Some x -> dpll (filterMap (unitPropagate x) clauses)
-  | None ->
+  | Some x ->
+    print_string "Unit clause:\n"; printClauses clauses; print_char '\n';
+    dpllAux (Set.add x assignments) (List.map (unitPropagate x) clauses)
+  | None -> (
     let pure = pureLiterals clauses in
     match Set.elements pure with
-    | [] ->
+    | _::_ -> (
+      print_string "Pure literals:\n"; printClauses clauses; print_char '\n';
+      dpllAux (Set.union assignments pure) (pureLitElim pure clauses))
+    | [] -> (
       let split = List.hd (List.hd clauses) in
-      (dpll (filterMap (unitPropagate split) clauses)) &&
-      (dpll (filterMap (unitPropagate (inv split)) clauses))
-    | _ -> dpll (pureLitElim pure clauses)
+      print_string "Split left:\n"; printLiteral split ; print_char '\n' ; printClauses clauses; print_char '\n';
+      let left = dpllAux (Set.add split assignments) (List.map (unitPropagate split) clauses) in
+      match Set.elements left with
+      | _::_ -> left
+      | [] -> (
+        print_string "Split right:\n"; printClauses clauses; print_char '\n';
+        let right = dpllAux (Set.add (inv split) assignments) (List.map (unitPropagate (inv split)) clauses) in
+        match Set.elements right with
+        | _::_ -> right
+        | [] -> Set.empty)))
 
-
-let rec printList = function
-  | [] -> print_string "\n"
-  | x::l ->
-    if not x.sign then print_string "¬" ;
-    print_char x.lit ; print_string " " ; printList l
-
+let dpll clauses =
+  Set.elements (dpllAux Set.empty clauses)
 
 let _ =
   let clauses = [
@@ -152,10 +167,19 @@ let _ =
       {lit = 'D'; sign = true};
     ];
   ] in
-  let clauses' = dpll clauses in
-  List.iter (fun x -> printList x) clauses ;
-  print_char '\n' ;
-  List.iter (fun x -> printList x) clauses' ;
-  print_char '\n' ;
+  let model = dpll clauses in
+  (* printClauses clauses;
+  print_char '\n' ; *)
+  if model == [] then print_string "No satisfying model found\n"
+  else (
+    print_string "Model found:\n";
+    List.iter (
+      fun lit ->
+        if not lit.sign then print_string "¬" ;
+        print_char lit.lit ; print_string " " )
+      model;
+    print_char '\n')
+
+
 
 
