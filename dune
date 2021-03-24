@@ -1,2 +1,4 @@
 (executable
- (name main))
+ (name lexer))
+
+
