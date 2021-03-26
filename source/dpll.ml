@@ -44,14 +44,13 @@ let rec foldLeft f a l =
   | [] -> a
   | h::t -> foldLeft f (f a h) t
 
-let rec isConsistentClause (occurrences, seen) clause =
+(* let rec isConsistentClause (occurrences, seen) clause =
   match clause with
   | [] -> (occurrences, seen)
   | l::_ when Set.mem (inv l) occurrences ->
     (occurrences, true)
   | l::clause ->
     isConsistentClause (Set.add l occurrences, seen) clause
-
 
 let isConsistent clauses =
   let l = foldLeft (
@@ -62,8 +61,7 @@ let isConsistent clauses =
     clauses in
   match l with
   | (_, false) -> Set.empty
-  | (occurrences, true) -> occurrences
-  
+  | (occurrences, true) -> occurrences *)
 
 let rec getPureLiteralsClause (first, second) clause =
   match clause with
@@ -119,29 +117,31 @@ let rec dpllAux clauses assignments =
   | Some x ->
     let (clauses, assignments) = assign x (clauses, assignments) in
     dpllAux clauses assignments
-  | None -> (
+  | None ->
     let pure = pureLiterals clauses in
     match Set.elements pure with
-    | _::_ -> (
-      let (clauses, assignments) = Set.fold assign pure (clauses, assignments) in
-      dpllAux clauses assignments)
-    | [] -> (
+    | _::_ ->
+      let clauses, assignments = Set.fold assign pure (clauses, assignments) in
+      dpllAux clauses assignments
+    | [] ->
       let split = List.hd (List.hd clauses) in
-      let (clauses, assignments) = assign split (clauses, assignments) in
+      let clauses, assignments = assign split (clauses, assignments) in
       let left = dpllAux clauses assignments in
       match Set.elements left with
       | _::_ -> left
-      | [] -> (
-        let (clauses, assignments) = assign split (clauses, assignments) in
+      | [] ->
+        let clauses, assignments = assign split (clauses, assignments) in
         let right = dpllAux clauses assignments in
         match Set.elements right with
         | _::_ -> right
-        | [] -> Set.empty)))
+        | [] -> Set.empty
 
 let dpll clauses =
   Set.elements (dpllAux clauses Set.empty)
 
-let _ =
+
+(* let _ =
+  let open Dpll in
   let clauses = [
     [
       {lit = 'A'; sign = false};
@@ -180,7 +180,7 @@ let _ =
         if not lit.sign then print_string "¬" ;
         print_char lit.lit ; print_string " " )
       model;
-    print_char '\n')
+    print_char '\n') *)
 
 
 

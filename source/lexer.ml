@@ -1,16 +1,20 @@
 
+
 type token =
   | Literal of string
   | And
   | Or
   | Neg
+  | Implies
+  | Iff
 
 let print_token = function
   | Literal s -> print_string s; print_char ' '
   | And -> print_string "/\\ "
   | Or -> print_string "\\/ "
   | Neg -> print_string "~"
-
+  | Implies -> print_string "-> "
+  | Iff -> print_string "<-> "
 
 let isAlpha c =
   let code = Char.code c in
@@ -48,48 +52,38 @@ let rec lexVariable input tokens =
   let lit = Literal (stringOfChars n tokenChrs) in
   lexAux tail (lit::tokens)
 
-and lexAnd input tokens =
-  match input with
-  | [] | _::[] -> raise (Failure "Hmm")
-  | '/'::'\\'::l -> lexAux l (And::tokens)
-  | _ -> raise (Failure "Hmm")
-
-and lexOr input tokens =
-  match input with
-  | [] | _::[] -> raise (Failure "Hmm")
-  | '\\'::'/'::l -> lexAux l (Or::tokens)
-  | _ -> raise (Failure "Hmm")
-
 and lexAux input tokens =
   match input with
   | [] -> tokens
-  | c::tail -> match c with
-    | ' ' -> lexAux tail tokens
-    | c when isAlpha c -> lexVariable input tokens
-    | '~' -> lexAux tail (Neg::tokens)
-    | '/' -> lexAnd input tokens
-    | '\\' -> lexOr input tokens
-    | _ -> raise (Failure "Hmm")
-
-let lex input =
-  lexAux input []
-  |> List.rev
-
+  | ' '::tail -> lexAux tail tokens
+  | c::_ when isAlpha c -> lexVariable input tokens
+  | '~'::tail -> lexAux tail (Neg::tokens)
+  | '/'::'\\'::tail -> lexAux tail (And::tokens)
+  | '\\'::'/'::tail -> lexAux tail (Or::tokens)
+  | '-'::'>'::tail -> lexAux tail (Implies::tokens)
+  | '<'::'-'::'>'::tail -> lexAux tail (Iff::tokens)
+  | _ -> raise (Failure "Hmm")
 
 let explode s =
   let rec exp i l =
     if i < 0 then l else exp (i - 1) (s.[i] :: l) in
   exp (String.length s - 1) []
 
-let _ =
-  let input = "A \\/ ~ B" in
+let lex input =
+  lexAux (explode input) []
+  |> List.rev
+
+  
+(* let _ =
+  let open Lexer in
+  let input = "A \\/ ~ B -> C /\\ D" in
   print_string input;
   print_char '\n';
 
   print_char '[';
-  lex (explode input)
+  lex input
   |> List.iter print_token;
-  print_string "]\n\n";
+  print_string "]\n\n"; *)
 
 
 
