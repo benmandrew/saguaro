@@ -1,8 +1,8 @@
 
-type unary =
+type unaryOp =
   | Neg
 
-type binary =
+type binaryOp =
   | And
   | Or
   | Implies
@@ -12,15 +12,21 @@ type tree =
   | Literal of string
   | True
   | False
-  | Unary of unary * tree
-  | Binary of tree * binary * tree
+  | Unary of unaryOp * tree
+  | Binary of tree * binaryOp * tree
+
+
+(* let rec printList = function
+  | [] -> print_char '\n'
+  | x::l -> Lexer.print_token x; printList l *)
+
 
 let rec parseIff tokens =
   let tokens1, left = parseImplies tokens in
   match tokens1 with
   | Lexer.Iff::tokens2 ->
     let tokens3, right = parseIff tokens2 in
-    (tokens3, Binary (left, Iff, right))
+    (tokens3, Binary(left, Iff, right))
   | _ -> (tokens1, left)
 
 and parseImplies tokens =
@@ -28,23 +34,23 @@ and parseImplies tokens =
   match tokens1 with
   | Lexer.Implies::tokens2 ->
     let tokens3, right = parseImplies tokens2 in
-    (tokens3, Binary (left, Implies, right))
+    (tokens3, Binary(left, Implies, right))
   | _ -> (tokens1, left)
 
 and parseOr tokens =
   let tokens1, left = parseAnd tokens in
   match tokens1 with
-  | Lexer.Implies::tokens2 ->
+  | Lexer.Or::tokens2 ->
     let tokens3, right = parseOr tokens2 in
-    (tokens3, Binary (left, Or, right))
+    (tokens3, Binary(left, Or, right))
   | _ -> (tokens1, left)
 
 and parseAnd tokens =
   let tokens1, left = parseNeg tokens in
   match tokens1 with
-  | Lexer.Implies::tokens2 ->
+  | Lexer.And::tokens2 ->
     let tokens3, right = parseAnd tokens2 in
-    (tokens3, Binary (left, And, right))
+    (tokens3, Binary(left, And, right))
   | _ -> (tokens1, left)
 
 and parseNeg tokens =
@@ -63,69 +69,43 @@ and parseVar tokens =
     let tokens2, tree = parseIff tokens1 in
     match tokens2 with
     | Lexer.RightBracket::tokens3 -> (tokens3, tree)
-    | _ -> raise (Failure "Hmm"))
-  | _ -> raise (Failure "Hmm")
+    | _ -> raise (Failure "Unmatched brackets"))
+  | _ -> raise (Failure "Invalid token")
+
 
 let parse tokens =
   match parseIff tokens with
   | ([], tree) -> tree
-  | _ -> raise (Failure "Hmm")
+  | _ -> raise (Failure "Extra tokens left after parsing")
 
 
+let rec repeatChar n c =
+  print_char c;
+  if n > 0 then repeatChar (n-1) c
+
+let rec printTreeAux tree level =
+  print_char '\n';
+  repeatChar level ' ';
+  match tree with
+  | Literal s -> print_string s; print_char ' '
+  | True -> print_string "true "
+  | False -> print_string "false "
+  | Unary(op, tree) -> (match op with
+    | Neg -> print_char '~';
+      printTreeAux tree (level+1))
+  | Binary(left, op, right) -> (match op with
+    | And -> print_string "/\\ "
+    | Or -> print_string "\\/ "
+    | Implies -> print_string "-> "
+    | Iff -> print_string "<-> ");
+    printTreeAux left (level+1);
+    printTreeAux right (level+1)
+
+let printTree tree =
+  printTreeAux tree 0
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-let _ =
-  let open Dpll in
-  let clauses = [
-    [
-      {lit = 'A'; sign = false};
-      {lit = 'D'; sign = false};
-      {lit = 'E'; sign = true};
-    ];
-    [
-      {lit = 'A'; sign = false};
-      {lit = 'F'; sign = true};
-      {lit = 'E'; sign = false};
-    ];
-    [
-      {lit = 'A'; sign = false};
-      {lit = 'F'; sign = false};
-      {lit = 'G'; sign = true};
-    ];
-    [
-      {lit = 'A'; sign = false};
-      {lit = 'G'; sign = false};
-      {lit = 'E'; sign = false};
-    ];
-    [
-      {lit = 'A'; sign = true};
-      {lit = 'D'; sign = true};
-      {lit = 'F'; sign = true};
-    ];
-  ] in
-  let model = dpll clauses in
-  printClauses clauses;
-  print_char '\n' ;
-  if model == [] then print_string "No satisfying model found\n"
-  else (
-    print_string "Model found:\n";
-    List.iter (
-      fun lit ->
-        if not lit.sign then print_string "¬" ;
-        print_char lit.lit ; print_string " " )
-      model;
-    print_char '\n')
+(* let _ =
+  let tokens = Lexer.lex "(A -> B /\\ B -> A) <-> (A <-> B)" in
+  printTree (parse tokens);
+  print_char '\n' *)

@@ -96,7 +96,7 @@ let assign lit (clauses, assignments) =
   (clauses', Set.add lit assignments)
 
 let printLiteral lit =
-  if not lit.sign then print_string "¬" ;
+  if not lit.sign then print_string "~" ;
   print_char lit.lit ; print_string " "
 
 let rec printListAux = function

@@ -16,8 +16,8 @@ let print_token = function
   | Literal s -> print_string s; print_char ' '
   | True -> print_string "true "
   | False -> print_string "false "
-  | And -> print_string "/\\ "
-  | Or -> print_string "\\/ "
+  | And -> print_string "& "
+  | Or -> print_string "| "
   | Neg -> print_string "~"
   | Implies -> print_string "-> "
   | Iff -> print_string "<-> "
@@ -70,11 +70,11 @@ and lexAux input tokens =
   | '('::tail -> lexAux tail (LeftBracket::tokens)
   | ')'::tail -> lexAux tail (RightBracket::tokens)
   | '~'::tail -> lexAux tail (Neg::tokens)
-  | '/'::'\\'::tail -> lexAux tail (And::tokens)
-  | '\\'::'/'::tail -> lexAux tail (Or::tokens)
+  | '&'::tail -> lexAux tail (And::tokens)
+  | '|'::tail -> lexAux tail (Or::tokens)
   | '-'::'>'::tail -> lexAux tail (Implies::tokens)
   | '<'::'-'::'>'::tail -> lexAux tail (Iff::tokens)
-  | _ -> raise (Failure "Hmm")
+  | _ -> raise (Failure "Input cannot be tokenised")
 
 let explode s =
   let rec exp i l =
