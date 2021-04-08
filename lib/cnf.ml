@@ -1,6 +1,17 @@
 
 open Parser
 
+let rec collect = function
+  | Literal s -> [[{Dpll.lit=s; Dpll.sign=true}]]
+  | Unary(Neg, Literal s) -> [[{Dpll.lit=s; Dpll.sign=false}]]
+  | Binary(a, And, b) -> List.append (collect a) (collect b)
+  | Binary(a, Or, b) -> (
+    let a' = collect a in
+    let b' = collect b in
+    List.fold_left (fun cs cl ->
+      List.append (List.map (fun cr ->
+        List.append cl cr) b') cs) [] a')
+  | _ -> raise (Failure "collection failure")
 
 let nnfAux = function
   (* A => B ---> ~A | B *)
@@ -25,26 +36,7 @@ let rec nnf tree = match nnfAux tree with
   | Binary(a, op, b) -> Binary(nnf a, op, nnf b)
   | leaf -> leaf
 
-
-(* let collectClauses = function
-| Unary(Neg, a) -> Unary(op, nnf a)
-| Unary(Neg, True) -> False
-| Unary(Neg, False) -> True
-| Binary(a, op, b) -> Binary(nnf a, op, nnf b)
-| leaf -> leaf *)
-
-
-
-let _ =
-  let tree =
-    "~(((~A | ~B) & (~C | ~D)) | ((~E | ~F) & (~G | ~H)))"
-    |> Lexer.lex
-    |> parse in
-
-  (* printTree tree; *)
-
-  printTree (nnf tree);
-  print_char '\n'
-
-
+let cnf tree =
+  nnf tree
+  |> collect
 

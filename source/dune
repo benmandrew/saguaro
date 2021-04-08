@@ -1,2 +1,3 @@
 (executable
- (name dnf))
+ (name main)
+ (libraries lib))

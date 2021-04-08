@@ -15,12 +15,6 @@ type tree =
   | Unary of unaryOp * tree
   | Binary of tree * binaryOp * tree
 
-
-(* let rec printList = function
-  | [] -> print_char '\n'
-  | x::l -> Lexer.print_token x; printList l *)
-
-
 let rec parseIff tokens =
   let tokens1, left = parseImplies tokens in
   match tokens1 with
@@ -72,40 +66,8 @@ and parseVar tokens =
     | _ -> raise (Failure "Unmatched brackets"))
   | _ -> raise (Failure "Invalid token")
 
-
 let parse tokens =
   match parseIff tokens with
   | ([], tree) -> tree
   | _ -> raise (Failure "Extra tokens left after parsing")
 
-
-let rec repeatChar n c =
-  print_char c;
-  if n > 0 then repeatChar (n-1) c
-
-let rec printTreeAux tree level =
-  print_char '\n';
-  repeatChar level ' ';
-  match tree with
-  | Literal s -> print_string s; print_char ' '
-  | True -> print_string "true "
-  | False -> print_string "false "
-  | Unary(op, tree) -> (match op with
-    | Neg -> print_char '~';
-      printTreeAux tree (level+1))
-  | Binary(left, op, right) -> (match op with
-    | And -> print_string "/\\ "
-    | Or -> print_string "\\/ "
-    | Implies -> print_string "-> "
-    | Iff -> print_string "<-> ");
-    printTreeAux left (level+1);
-    printTreeAux right (level+1)
-
-let printTree tree =
-  printTreeAux tree 0
-
-
-(* let _ =
-  let tokens = Lexer.lex "(A -> B /\\ B -> A) <-> (A <-> B)" in
-  printTree (parse tokens);
-  print_char '\n' *)

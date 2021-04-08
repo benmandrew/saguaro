@@ -1,5 +1,4 @@
 
-
 type token =
   | Literal of string
   | True
@@ -84,23 +83,4 @@ let explode s =
 let lex input =
   lexAux (explode input) []
   |> List.rev
-
-  
-(* let _ =
-  let open Lexer in
-  let input = "A \\/ ~ B -> C /\\ D" in
-  print_string input;
-  print_char '\n';
-
-  print_char '[';
-  lex input
-  |> List.iter print_token;
-  print_string "]\n\n"; *)
-
-
-
-
-
-
-
 
