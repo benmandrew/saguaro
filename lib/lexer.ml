@@ -18,15 +18,17 @@ let print_token = function
   | And -> print_string "& "
   | Or -> print_string "| "
   | Neg -> print_string "~"
-  | Implies -> print_string "-> "
-  | Iff -> print_string "<-> "
+  | Implies -> print_string "=> "
+  | Iff -> print_string "<=> "
   | LeftBracket -> print_string "( "
   | RightBracket -> print_string ") "
 
 let isAlpha c =
   let code = Char.code c in
-  (code >= 65 && code <= 90) ||
-  (code >= 97 && code <= 122)
+  (code == 95) ||               (* Underscore *)
+  (code >= 48 && code <= 57) || (* Number *)
+  (code >= 65 && code <= 90) || (* Upper *)
+  (code >= 97 && code <= 122)   (* Lower *)
 
 let rec takeAux n l acc =
   match l with
@@ -64,7 +66,7 @@ let rec lexVariable input tokens =
 and lexAux input tokens =
   match input with
   | [] -> tokens
-  | ' '::tail -> lexAux tail tokens
+  | ' '::tail | '\t'::tail | '\n'::tail -> lexAux tail tokens
   | c::_ when isAlpha c -> lexVariable input tokens
   | '('::tail -> lexAux tail (LeftBracket::tokens)
   | ')'::tail -> lexAux tail (RightBracket::tokens)

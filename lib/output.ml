@@ -34,8 +34,8 @@ let rec printTreeAux tree level =
   | Binary(left, op, right) -> (match op with
     | And -> print_string "/\\ "
     | Or -> print_string "\\/ "
-    | Implies -> print_string "-> "
-    | Iff -> print_string "<-> ");
+    | Implies -> print_string "=> "
+    | Iff -> print_string "<=> ");
     printTreeAux left (level+1);
     printTreeAux right (level+1)
 
