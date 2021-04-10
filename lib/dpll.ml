@@ -99,13 +99,13 @@ let rec dpllAux clauses assignments =
       dpllAux clauses assignments
     | [] ->
       let split = List.hd (List.hd clauses) in
-      let clauses, assignments = assign split (clauses, assignments) in
-      let (_, left) = dpllAux clauses assignments in
+      let clauses', assignments' = assign split (clauses, assignments) in
+      let (_, left) = dpllAux clauses' assignments' in
       match Set.elements left with
       | _::_ -> (true, left)
       | [] ->
-        let clauses, assignments = assign split (clauses, assignments) in
-        let (_, right) = dpllAux clauses assignments in
+        let clauses', assignments' = assign (inv split) (clauses, assignments) in
+        let (_, right) = dpllAux clauses' assignments' in
         match Set.elements right with
         | _::_ -> (true, right)
         | [] -> (true, Set.empty)

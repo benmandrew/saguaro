@@ -1,8 +1,6 @@
 
 type token =
   | Literal of string
-  | True
-  | False
   | And
   | Or
   | Neg
@@ -10,18 +8,6 @@ type token =
   | Iff
   | LeftBracket
   | RightBracket
-
-let print_token = function
-  | Literal s -> print_string s; print_char ' '
-  | True -> print_string "true "
-  | False -> print_string "false "
-  | And -> print_string "& "
-  | Or -> print_string "| "
-  | Neg -> print_string "~"
-  | Implies -> print_string "=> "
-  | Iff -> print_string "<=> "
-  | LeftBracket -> print_string "( "
-  | RightBracket -> print_string ") "
 
 let isAlpha c =
   let code = Char.code c in
@@ -58,10 +44,8 @@ let predExtent pred l =
 let rec lexVariable input tokens =
   let n = predExtent isAlpha input in
   let tokenChrs, tail = take n input in
-  match stringOfChars n tokenChrs with
-  | "true" -> lexAux tail (True::tokens)
-  | "false" ->lexAux tail (False::tokens)
-  | str -> lexAux tail ((Literal str)::tokens)
+  let str = stringOfChars n tokenChrs in
+  lexAux tail ((Literal str)::tokens)
 
 and lexAux input tokens =
   match input with
@@ -73,8 +57,8 @@ and lexAux input tokens =
   | '~'::tail -> lexAux tail (Neg::tokens)
   | '&'::tail -> lexAux tail (And::tokens)
   | '|'::tail -> lexAux tail (Or::tokens)
-  | '-'::'>'::tail -> lexAux tail (Implies::tokens)
-  | '<'::'-'::'>'::tail -> lexAux tail (Iff::tokens)
+  | '='::'>'::tail -> lexAux tail (Implies::tokens)
+  | '<'::'='::'>'::tail -> lexAux tail (Iff::tokens)
   | _ -> raise (Failure "Input cannot be tokenised")
 
 let explode s =

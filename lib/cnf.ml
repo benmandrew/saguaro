@@ -13,7 +13,7 @@ let rec collect = function
         List.append cl cr) b') cs) [] a')
   | _ -> raise (Failure "collection failure")
 
-let nnfAux = function
+let rec nnfAux = function
   (* A => B ---> ~A | B *)
   | Binary(a, Implies, b) ->
     Binary(Unary(Neg, a), Or, b)
@@ -22,21 +22,28 @@ let nnfAux = function
     Binary(Binary(a, And, b), Or,
       Binary(Unary(Neg, a), And, Unary(Neg, b)))
   (* ~~A ---> A *)
-  | Unary(Neg, Unary(Neg, a)) -> a
+  | Unary(Neg, Unary(Neg, a)) -> nnfAux a
   (* ~(A & B) ---> ~A | ~B *)
   | Unary(Neg, Binary(a, And, b)) ->
     Binary(Unary(Neg, a), Or, Unary(Neg, b))
   (* ~(A | B) ---> ~A & ~B *)
   | Unary(Neg, Binary(a, Or, b)) ->
     Binary(Unary(Neg, a), And, Unary(Neg, b))
+  (* ~(A => B) ---> A & ~B *)
+  | Unary(Neg, Binary(a, Implies, b)) ->
+    Binary(a, And, Unary(Neg, b))
+  (* ~(A <=> B) ---> (A | B) & (~A | ~B) *)
+  | Unary(Neg, Binary(a, Iff, b)) ->
+    Binary(Binary(a, Or, b), And,
+      Binary(Unary(Neg, a), Or, Unary(Neg, b)))
   | a -> a
 
 let rec nnf tree = match nnfAux tree with
   | Unary(op, a) -> Unary(op, nnf a)
-  | Binary(a, op, b) -> Binary(nnf a, op, nnf b)
+  | Binary(a, op, b) ->
+    Binary(nnf a, op, nnf b)
   | leaf -> leaf
 
-let cnf tree =
-  nnf tree
-  |> collect
+
+let cnf tree = nnf tree |> collect
 

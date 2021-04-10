@@ -16,6 +16,18 @@ let printList l =
 let printClauses clauses =
   List.iter (fun x -> printList x) clauses
 
+let printToken t =
+  let open Lexer in
+  match t with
+  | Literal s -> print_string s; print_char ' '
+  | And -> print_string "& "
+  | Or -> print_string "| "
+  | Neg -> print_string "~"
+  | Implies -> print_string "=> "
+  | Iff -> print_string "<=> "
+  | LeftBracket -> print_string "( "
+  | RightBracket -> print_string ") "
+
 let rec repeatChar n c =
   print_char c;
   if n > 0 then repeatChar (n-1) c
@@ -26,8 +38,6 @@ let rec printTreeAux tree level =
   repeatChar level ' ';
   match tree with
   | Literal s -> print_string s; print_char ' '
-  | True -> print_string "true "
-  | False -> print_string "false "
   | Unary(op, tree) -> (match op with
     | Neg -> print_char '~';
       printTreeAux tree (level+1))
@@ -40,5 +50,4 @@ let rec printTreeAux tree level =
     printTreeAux right (level+1)
 
 let printTree tree =
-  printTreeAux tree 0
-
+  printTreeAux tree 0 ; print_char '\n'

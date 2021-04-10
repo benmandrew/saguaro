@@ -1,14 +1,13 @@
 
 open Lib
 
-let helpText = "Usage: dpllsat.exe file
+let helpText = "Usage: saguaro.exe file
 
 Description:
   Parses propositional formulae, converts it to clause normal form, and attempts to prove it by negation and deriving a contradiction using the DPLL method.
 
 Syntax for input:
   Propositional symbols must be strings of alphanumeric characters and/or underscores.
-  Logical true and false are 'true' and 'false'.
   Negation: '~A'
   And:      'A & B'
   Or:       'A | B'
@@ -40,19 +39,32 @@ let parseInput () =
 
 let _ =
   let open Dpll in
+  let input = parseInput () in
+
+  print_string "Input:\n" ;
+  print_string input ;
+  print_string "\n\n" ;
+
   let clauses =
-    parseInput ()
-    |> Lexer.lex
+    Lexer.lex input
     |> Parser.parse
+    |> Parser.negate
     |> Cnf.cnf in
+
   let (success, model) = dpll clauses in
-  Output.printClauses clauses;
+
+  print_string "Negated clause form:\n" ;
+
+  Output.printClauses clauses ;
+
   print_char '\n' ;
+
   if not success then
-    print_string "No satisfying model found\n"
+    print_string "Contradiction derived: formula is valid\n"
   else if model == [] then
-    print_string "Formula is a tautology\n"
+    print_string "Formula is unsatisfiable\n"
   else (
-    print_string "Model found:\n";
-    List.iter Output.printLiteral model;
-    print_char '\n')
+    print_string "Formula is satisfiable\n"
+    (* let inverse = List.map inv model in
+    List.iter Output.printLiteral inverse;
+    print_char '\n') *) )

@@ -10,8 +10,6 @@ type binaryOp =
 
 type tree =
   | Literal of string
-  | True
-  | False
   | Unary of unaryOp * tree
   | Binary of tree * binaryOp * tree
 
@@ -57,8 +55,6 @@ and parseNeg tokens =
 and parseVar tokens =
   match tokens with
   | (Lexer.Literal str)::tokens1 -> (tokens1, Literal str)
-  | Lexer.True::tokens1 -> (tokens1, True)
-  | Lexer.False::tokens1 -> (tokens1, False)
   | Lexer.LeftBracket::tokens1 -> (
     let tokens2, tree = parseIff tokens1 in
     match tokens2 with
@@ -71,3 +67,4 @@ let parse tokens =
   | ([], tree) -> tree
   | _ -> raise (Failure "Extra tokens left after parsing")
 
+let negate tree = Unary(Neg, tree)
