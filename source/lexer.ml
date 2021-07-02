@@ -69,4 +69,3 @@ let explode s =
 let lex input =
   lexAux (explode input) []
   |> List.rev
-

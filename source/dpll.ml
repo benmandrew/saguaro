@@ -1,5 +1,4 @@
 
-
 type literal = {
   lit : string;
   sign : bool;
@@ -114,4 +113,3 @@ let dpll clauses =
   let clauses = removeComplementary clauses in
   let (success, assignments) = dpllAux clauses Set.empty in
   (success, Set.elements assignments)
-

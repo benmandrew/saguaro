@@ -46,4 +46,3 @@ let rec nnf tree = match nnfAux tree with
 
 
 let cnf tree = nnf tree |> collect
-
