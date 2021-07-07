@@ -38,3 +38,8 @@ mirage build
 ```
 Precedence decreases downwards. Brackets can be used for explicit precedence.
 Variables must be a string of alphabetical ASCII characters.
+
+### Example formulae
+- `A <=> ~A`
+- `A & C => A | B`
+- `A & B & C & D | E`
