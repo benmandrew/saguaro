@@ -13,7 +13,7 @@ let fmtList l =
   "{ " ^ fmtListAux l
 
 let fmtClauses clauses =
-  List.map (fun x -> fmtList x) clauses
+  List.fold_left (fun s -> fun x -> s ^ (fmtList x)) "" clauses
 
 let fmtToken t =
   let open Lexer in
@@ -44,8 +44,8 @@ let rec fmtTreeAux tree level =
       | Or -> "\\/ "
       | Implies -> "=> "
       | Iff -> "<=> ") ^
-      fmtTreeAux left (level+1) ^
-      fmtTreeAux right (level+1))
+      (fmtTreeAux left (level+1)) ^
+      (fmtTreeAux right (level+1)))
 
 let fmtTree tree =
   fmtTreeAux tree 0 ^ "\n"

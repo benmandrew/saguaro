@@ -27,3 +27,14 @@ setup.log
 
 # Local OPAM switch
 _opam/
+
+# Mirage files and directories
+dist/
+duniverse/
+mirage/
+dune
+dune-project
+dune-workspace
+dune.build
+dune.config
+Makefile

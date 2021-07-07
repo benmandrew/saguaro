@@ -1,8 +1,10 @@
-(* open Lwt.Infix *)
+open Lwt.Infix
 
-module Main = struct
+module Main (Time : Mirage_time.S) = struct
 
-  let start = 
+  let start _time = 
+
+    (* Logs.set_reporter (Logs_fmt.reporter ()) ; *)
     
     let formula = Key_gen.formula () in
 
@@ -14,20 +16,21 @@ module Main = struct
     
     let (success, model) = Dpll.dpll clauses in (
 
-    Logs.info (fun f -> f "%s" "Negated clause form:\n") ;
+    Logs.info (fun f -> f "Negated clause form:\n") ;
 
     Logs.info (fun f -> f "%s" ((Format.fmtClauses clauses) ^ "\n")) ;
 
     if not success then
       Logs.info (fun f ->
-        f "%s" "Contradiction derived: formula is valid\n")
+        f "Contradiction derived: formula is valid\n")
     else if model == [] then
       Logs.info (fun f ->
-        f "%s" "Formula is unsatisfiable\n")
+        f "Formula is unsatisfiable\n")
     else 
       Logs.info (fun f ->
-        f "%s" "Formula is satisfiable\n") ;
+        f "Formula is satisfiable\n") ;
 
+    Time.sleep_ns (Duration.of_sec 1) >>= fun () ->
     Lwt.return_unit)
 
 end
