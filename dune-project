@@ -11,4 +11,6 @@
  (name saguaro)
  (synopsis "Propositional logic SAT solver using the DPLL method. Supported by a lexer, parser, and clause form converter")
  (description "Propositional logic SAT solver using the DPLL method. Supported by a lexer, parser, and clause form converter")
- (depends ocaml dune))
+ (depends
+  (ocaml (>= 4.08))
+  dune))

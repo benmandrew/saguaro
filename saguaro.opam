@@ -10,7 +10,7 @@ license: "MIT"
 homepage: "https://github.com/benmandrew/saguaro"
 bug-reports: "https://github.com/benmandrew/saguaro/issues"
 depends: [
-  "ocaml"
+  "ocaml" {>= "4.08"}
   "dune" {>= "2.8"}
   "odoc" {with-doc}
 ]
